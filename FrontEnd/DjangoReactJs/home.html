@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TaskFlow - Suas Tarefas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="./home.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg custom-navbar">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-tasks me-2"></i>
+                TaskFlow
+            </a>
+            
+            <div class="navbar-nav ms-auto">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle user-menu" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-2"></i>
+                        <span id="username-display"></span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-2"></i>Sair
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <!-- Header Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="welcome-header">
+                    <h1 class="display-6 fw-bold">
+                        <i class="fas fa-calendar-check me-3"></i>
+                        Suas Tarefas
+                    </h1>
+                    <p class="lead text-muted">Organize e gerencie suas atividades diárias</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="stat-card">
+                    <div class="stat-icon total">
+                        <i class="fas fa-list"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalTasks">0</h3>
+                        <p>Total de Tarefas</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="stat-card">
+                    <div class="stat-icon pending">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="pendingTasks">0</h3>
+                        <p>Pendentes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="stat-card">
+                    <div class="stat-icon completed">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="completedTasks">0</h3>
+                        <p>Concluídas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Controls -->
+        <div class="row mb-4">
+            <div class="col-lg-8 mb-3">
+                <div class="task-form-card">
+                    <form id="taskForm">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-plus"></i>
+                            </span>
+                            <input type="text" class="form-control" id="taskInput" placeholder="Digite sua nova tarefa..." required>
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-plus me-1"></i>
+                                Adicionar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-3">
+                <div class="filter-controls">
+                    <select class="form-select" id="taskFilter">
+                        <option value="all">Todas as tarefas</option>
+                        <option value="pending">Pendentes</option>
+                        <option value="completed">Concluídas</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task List -->
+        <div class="row">
+            <div class="col-12">
+                <div class="task-list-container">
+                    <div id="emptyState" class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <h3>Nenhuma tarefa ainda</h3>
+                        <p>Que tal começar adicionando sua primeira tarefa?</p>
+                    </div>
+                    <div id="taskList" class="task-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Task Modal -->
+    <div class="modal fade" id="editTaskModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-edit me-2"></i>
+                        Editar Tarefa
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editTaskForm">
+                        <div class="form-floating">
+                            <input type="text" class="form-control" id="editTaskInput" placeholder="Texto da tarefa" required>
+                            <label for="editTaskInput">Texto da tarefa</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary" id="saveTaskBtn">
+                        <i class="fas fa-save me-1"></i>
+                        Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="./home.js"></script>
+</body>
+</html>
