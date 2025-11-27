@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import API from '../services/api';
+
+// URL base da sua API (do Railway)
+const API_URL = import.meta.env.VITE_API_URL || "https://djangoreactjssystem-production.up.railway.app";
 
 const AuthContext = createContext();
 
@@ -17,7 +19,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Carrega tokens do localStorage ao iniciar
+  // Carrega tokens ao iniciar
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     const username = localStorage.getItem('username');
@@ -30,28 +32,26 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // Login real com Django JWT
+  // Login usando Django JWT
   const login = async (username, password, rememberMe) => {
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/token/', {
-        username,
-        password
-      });
+      const response = await axios.post(
+        `${API_URL}/api/token/`,
+        { username, password }
+      );
 
       const { access, refresh } = response.data;
 
-      // Salva tokens
+      // Salvar tokens
       localStorage.setItem('access_token', access);
       localStorage.setItem('refresh_token', refresh);
       localStorage.setItem('username', username);
 
-      // Configura axios
       axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
       setIsAuthenticated(true);
       setUser(username);
 
-      // Se lembrar, mantém flag
       if (rememberMe) {
         localStorage.setItem('rememberMe', 'true');
       } else {
@@ -59,11 +59,13 @@ export const AuthProvider = ({ children }) => {
       }
 
       return { success: true };
+
     } catch (error) {
-      console.error('Erro ao autenticar:', error);
+      console.error("Erro ao autenticar:", error.response?.data || error.message);
+
       return {
         success: false,
-        error: 'Usuário ou senha incorretos.'
+        error: "Usuário ou senha incorretos ou servidor indisponível."
       };
     }
   };
@@ -78,16 +80,8 @@ export const AuthProvider = ({ children }) => {
     delete axios.defaults.headers.common['Authorization'];
   };
 
-  const value = {
-    isAuthenticated,
-    user,
-    login,
-    logout,
-    loading
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, loading }}>
       {loading ? <p>Carregando...</p> : children}
     </AuthContext.Provider>
   );
