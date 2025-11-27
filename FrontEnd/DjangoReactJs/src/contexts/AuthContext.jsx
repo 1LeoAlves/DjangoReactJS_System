@@ -2,27 +2,20 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import API from '../services/api';
 
 const AuthContext = createContext();
-const [loading, setLoading] = useState(true);
 
 export const useAuth = () => useContext(AuthContext);
-
-useEffect(() => {
-  const token = localStorage.getItem("access_token");
-  if (token) setUser(true);
-  setLoading(false);
-}, []);
-
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Carrega token e usuário do localStorage ao iniciar
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     const username = localStorage.getItem('username');
 
-    if (token) {
+    if (token && username) {
       setIsAuthenticated(true);
       setUser(username);
       API.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -31,11 +24,13 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
+  // Função de login
   const login = async (username, password, rememberMe) => {
     try {
       const response = await API.post('/token/', { username, password });
       const { access, refresh } = response.data;
 
+      // Salva tokens e username
       localStorage.setItem('access_token', access);
       localStorage.setItem('refresh_token', refresh);
       localStorage.setItem('username', username);
@@ -55,6 +50,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Função de logout
   const logout = () => {
     setIsAuthenticated(false);
     setUser(null);
