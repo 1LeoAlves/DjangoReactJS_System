@@ -85,7 +85,7 @@ const Register = () => {
                   <User className="input-icon" size={20} />
                   <input
                     type="text"
-                    name="username"
+                    Username="name"
                     placeholder="Usuário"
                     value={formData.name}
                     onChange={handleChange}
