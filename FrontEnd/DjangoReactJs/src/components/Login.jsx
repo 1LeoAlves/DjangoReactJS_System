@@ -45,52 +45,22 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
+  e.preventDefault();
+  setError('');
+  setIsLoading(true);
 
-    if (!formData.username.trim() || !formData.password.trim()) {
-      setError("Por favor, preencha todos os campos.");
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      // 🔥 LOGIN JWT — Django REST + SimpleJWT
-      const response = await API.post("/token/", {
-        username: formData.username,
-        password: formData.password
-      });
-
-      const { access, refresh } = response.data;
-
-      // salva token
-      localStorage.setItem("access_token", access);
-      localStorage.setItem("refresh", refresh);
-
-      // remember-me
-      if (formData.rememberMe) {
-        localStorage.setItem("rememberMe", true);
-        localStorage.setItem("username", formData.username);
-      } else {
-        localStorage.removeItem("rememberMe");
-        localStorage.removeItem("username");
-      }
-
-      // redireciona
-      setTimeout(() => navigate("/home"), 800);
-
-    } catch (err) {
-      console.error("Erro no login:", err);
-
-      if (err.response?.status === 401) {
-        setError("Usuário ou senha incorretos.");
-      } else {
-        setError("Erro ao conectar com o servidor.");
-      }
-    }
-
+  if (!formData.username.trim() || !formData.password.trim()) {
+    setError('Preencha todos os campos.');
     setIsLoading(false);
+    return;
+  }
+
+  const result = await login(formData.username, formData.password, formData.rememberMe);
+
+  if (!result.success) {
+    setError(result.error);
+    setIsLoading(false);
+  }
   };
 
   return (
