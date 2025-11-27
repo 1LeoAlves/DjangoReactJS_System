@@ -4,12 +4,12 @@ from django.contrib.auth.hashers import make_password
 from .models import Task
 
 class TaskSerializer(serializers.ModelSerializer):
-    text = serializers.CharField(source='title')
+    text = serializers.CharField(source='title', required=True)
+    owner = serializers.ReadOnlyField(source='owner.username')
 
     class Meta:
         model = Task
-        fields = ['id', 'text', 'description', 'completed']
-
+        fields = ['id', 'text', 'description', 'completed', 'owner']
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)

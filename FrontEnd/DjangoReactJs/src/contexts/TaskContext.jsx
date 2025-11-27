@@ -3,6 +3,7 @@ import API from '../services/api';
 import { useAuth } from './AuthContext';
 
 const TaskContext = createContext();
+
 export const useTask = () => {
   const context = useContext(TaskContext);
   if (!context) throw new Error('useTask must be used within a TaskProvider');
@@ -12,7 +13,7 @@ export const useTask = () => {
 export const TaskProvider = ({ children }) => {
   const { isAuthenticated, loading: authLoading } = useAuth();
 
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState(null); // null = não carregado ainda
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
 
@@ -32,25 +33,22 @@ export const TaskProvider = ({ children }) => {
         setTasks(res.data);
       } catch (err) {
         console.error('Erro ao carregar tarefas', err);
+        setTasks([]);
       } finally {
         setLoading(false);
       }
     };
 
-    if (!authLoading) {
-      fetchTasks();
-    }
+    if (!authLoading) fetchTasks();
   }, [isAuthenticated, authLoading]);
 
   // ================================
   // Helpers
   // ================================
-  const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
-
-  const addTask = async (text) => {
-    if (!text.trim()) return null;
+  const addTask = async (title, description = '') => {
+    if (!title.trim()) return null;
     try {
-      const res = await API.post('/tasks/', { text, completed: false });
+      const res = await API.post('/tasks/', { title, description, completed: false });
       setTasks(prev => [...prev, res.data]);
       return res.data;
     } catch (err) {
@@ -60,9 +58,12 @@ export const TaskProvider = ({ children }) => {
   };
 
   const updateTask = async (id, updates) => {
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+
     try {
-      const res = await API.put(`/tasks/${id}/`, updates);
-      setTasks(prev => prev.map(task => (task.id === id ? res.data : task)));
+      const res = await API.put(`/tasks/${id}/`, { ...task, ...updates });
+      setTasks(prev => prev.map(t => (t.id === id ? res.data : t)));
     } catch (err) {
       console.error('Erro ao atualizar tarefa', err);
     }
@@ -90,6 +91,7 @@ export const TaskProvider = ({ children }) => {
   };
 
   const getFilteredTasks = () => {
+    if (!tasks) return [];
     switch (filter) {
       case 'pending':
         return tasks.filter(task => !task.completed);
@@ -101,6 +103,7 @@ export const TaskProvider = ({ children }) => {
   };
 
   const getStats = () => {
+    if (!tasks) return { total: 0, completed: 0, pending: 0 };
     const total = tasks.length;
     const completed = tasks.filter(t => t.completed).length;
     const pending = total - completed;

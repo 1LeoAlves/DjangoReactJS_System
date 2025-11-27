@@ -6,9 +6,17 @@ from .serializers import UserSerializer, TaskSerializer
 from .models import Task
 
 class TaskViewSet(viewsets.ModelViewSet):
-    queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:  # admin vê todas as tasks
+            return Task.objects.all()
+        return Task.objects.filter(owner=user)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)  # atribui task ao usuário logado
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
