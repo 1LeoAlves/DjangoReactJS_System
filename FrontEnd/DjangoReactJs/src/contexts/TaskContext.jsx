@@ -45,17 +45,21 @@ export const TaskProvider = ({ children }) => {
   // ================================
   // Helpers
   // ================================
-  const addTask = async (title, description = '') => {
-    if (!title.trim()) return null;
-    try {
-      const res = await API.post('/tasks/', { text, description, completed: false });
-      setTasks(prev => [...prev, res.data]);
-      return res.data;
-    } catch (err) {
-      console.error('Erro ao adicionar tarefa', err);
-      return null;
-    }
-  };
+const addTask = async (title, description = '') => {
+  if (!title.trim()) return null;
+  try {
+    const res = await API.post('/tasks/', { 
+      text: title,
+      description: description,
+      completed: false 
+    });
+    setTasks(prev => [...prev, res.data]);
+    return res.data;
+  } catch (err) {
+    console.error('Erro ao adicionar tarefa', err);
+    return null;
+  }
+};
 
   const updateTask = async (id, updates) => {
     const task = tasks.find(t => t.id === id);

@@ -1,22 +1,20 @@
 from rest_framework import viewsets, permissions
 from .models import Task
 from .serializers import TaskSerializer, UserSerializer
+from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 
 class TaskViewSet(viewsets.ModelViewSet):
-    queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        # Só retorna tarefas do usuário logado
+        return Task.objects.filter(owner=self.request.user)
+
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
-
-from rest_framework import viewsets, permissions
-from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth.models import User
-from .serializers import UserSerializer
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
