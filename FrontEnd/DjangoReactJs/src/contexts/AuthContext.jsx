@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import API from '../services/api';
 
 // URL base da sua API (do Railway)
 const API_URL = import.meta.env.VITE_API_URL || "https://djangoreactjssystem-production.up.railway.app";
@@ -34,41 +35,27 @@ export const AuthProvider = ({ children }) => {
 
   // Login usando Django JWT
   const login = async (username, password, rememberMe) => {
-    try {
-      const response = await axios.post(
-        `${API_URL}/api/token/`,
-        { username, password }
-      );
+  try {
+    const response = await API.post('/token/', { username, password });
+    const { access, refresh } = response.data;
 
-      const { access, refresh } = response.data;
+    localStorage.setItem('access_token', access);
+    localStorage.setItem('refresh_token', refresh);
+    localStorage.setItem('username', username);
+    axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
-      // Salvar tokens
-      localStorage.setItem('access_token', access);
-      localStorage.setItem('refresh_token', refresh);
-      localStorage.setItem('username', username);
+    setIsAuthenticated(true);
+    setUser(username);
 
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+    if (rememberMe) localStorage.setItem('rememberMe', 'true');
+    else localStorage.removeItem('rememberMe');
 
-      setIsAuthenticated(true);
-      setUser(username);
-
-      if (rememberMe) {
-        localStorage.setItem('rememberMe', 'true');
-      } else {
-        localStorage.removeItem('rememberMe');
-      }
-
-      return { success: true };
-
-    } catch (error) {
-      console.error("Erro ao autenticar:", error.response?.data || error.message);
-
-      return {
-        success: false,
-        error: "Usuário ou senha incorretos ou servidor indisponível."
-      };
-    }
-  };
+    return { success: true };
+  } catch (error) {
+    console.error('Erro ao autenticar:', error);
+    return { success: false, error: 'Usuário ou senha incorretos.' };
+  }
+};
 
   const logout = () => {
     setIsAuthenticated(false);
