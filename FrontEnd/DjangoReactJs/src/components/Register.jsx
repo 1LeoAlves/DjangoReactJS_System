@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import API from '../services/api'; // seu axios já configurado
-import { CircleCheck as CheckCircle, Lock, User, CircleAlert as AlertCircle } from 'lucide-react';
+import API from '../services/api';
+import { CircleCheck as CheckCircle, User, Lock, CircleAlert as AlertCircle } from 'lucide-react';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -37,18 +37,14 @@ const Register = () => {
     }
 
     try {
-      const response = await API.post('/users/', {
+      // Criação do usuário no backend
+      await API.post('/users/', {
         username: formData.username,
         password: formData.password
       });
 
-      // Salva tokens recebidos do backend
-      localStorage.setItem('access_token', response.data.access);
-      localStorage.setItem('refresh_token', response.data.refresh);
-      localStorage.setItem('username', response.data.username);
-
-      // Redireciona para /home após cadastro
-      navigate('/home');
+      // Redireciona para login após cadastro
+      navigate('/login');
     } catch (err) {
       console.error('Erro ao cadastrar:', err);
       setError('Não foi possível cadastrar. Tente outro usuário.');
@@ -57,56 +53,104 @@ const Register = () => {
   };
 
   return (
-    <div className="register-container">
-      <h2>Cadastre-se</h2>
-      <form onSubmit={handleSubmit} className="register-form">
-        <div className="form-group">
-          <User className="input-icon" size={20} />
-          <input
-            type="text"
-            name="username"
-            placeholder="Usuário"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div className="form-group">
-          <Lock className="input-icon" size={20} />
-          <input
-            type="password"
-            name="password"
-            placeholder="Senha"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div className="form-group">
-          <Lock className="input-icon" size={20} />
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Confirme a senha"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? 'Cadastrando...' : 'Cadastrar'}
-        </button>
-
-        {error && (
-          <div className="error-message">
-            <AlertCircle size={20} />
-            <span>{error}</span>
+    <div className="login-container">
+      <div className="login-content">
+        {/* Left Section */}
+        <div className="left-section">
+          <div className="welcome-content">
+            <div className="logo-section">
+              <div className="logo-icon">
+                <CheckCircle size={64} />
+              </div>
+              <h1>TaskFlow</h1>
+            </div>
+            <p className="lead">Organize suas tarefas de forma inteligente e produtiva</p>
+            <div className="features">
+              <div className="feature-item">
+                <CheckCircle size={20} />
+                <span>Gerencie suas tarefas facilmente</span>
+              </div>
+              <div className="feature-item">
+                <Lock size={20} />
+                <span>Mantenha suas informações seguras</span>
+              </div>
+              <div className="feature-item">
+                <User size={20} />
+                <span>Crie sua conta em segundos</span>
+              </div>
+            </div>
           </div>
-        )}
-      </form>
+        </div>
+
+        {/* Right Section */}
+        <div className="right-section">
+          <div className="login-form-container">
+            <div className="login-header">
+              <h2>Cadastre-se</h2>
+              <p>Crie sua conta para começar a organizar suas tarefas</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="login-form">
+              <div className="form-group">
+                <div className="input-wrapper">
+                  <User className="input-icon" size={20} />
+                  <input
+                    type="text"
+                    name="username"
+                    placeholder="Usuário"
+                    value={formData.username}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <div className="input-wrapper">
+                  <Lock className="input-icon" size={20} />
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="Senha"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <div className="input-wrapper">
+                  <Lock className="input-icon" size={20} />
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    placeholder="Confirme a senha"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <button type="submit" className="btn-primary" disabled={isLoading}>
+                {isLoading ? 'Cadastrando...' : 'Cadastrar'}
+              </button>
+
+              {error && (
+                <div className="error-message">
+                  <AlertCircle size={20} />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <div className="demo-info">
+                <small>Já tem uma conta? <button type="button" onClick={() => navigate('/login')}>Entre aqui</button></small>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
