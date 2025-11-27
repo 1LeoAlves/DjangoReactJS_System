@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
+import API from '../services/api';
 
 const AuthContext = createContext();
 
@@ -15,47 +17,65 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Carrega tokens do localStorage ao iniciar
   useEffect(() => {
-    // Check if user is logged in on app start
-    const savedAuth = localStorage.getItem('isLoggedIn');
-    const savedUser = localStorage.getItem('username');
-    
-    if (savedAuth === 'true' && savedUser) {
+    const token = localStorage.getItem('access_token');
+    const username = localStorage.getItem('username');
+
+    if (token) {
       setIsAuthenticated(true);
-      setUser(savedUser);
+      setUser(username);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
     setLoading(false);
   }, []);
 
-  const login = (username, password, rememberMe) => {
-    // Simple validation - accept any non-empty credentials
-    if (username.trim().length >= 2 && password.trim().length >= 2) {
+  // Login real com Django JWT
+  const login = async (username, password, rememberMe) => {
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/api/token/', {
+        username,
+        password
+      });
+
+      const { access, refresh } = response.data;
+
+      // Salva tokens
+      localStorage.setItem('access_token', access);
+      localStorage.setItem('refresh_token', refresh);
+      localStorage.setItem('username', username);
+
+      // Configura axios
+      axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+
       setIsAuthenticated(true);
       setUser(username);
-      
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('username', username);
-      localStorage.setItem('rememberMe', rememberMe);
-      
+
+      // Se lembrar, mantém flag
+      if (rememberMe) {
+        localStorage.setItem('rememberMe', 'true');
+      } else {
+        localStorage.removeItem('rememberMe');
+      }
+
       return { success: true };
+    } catch (error) {
+      console.error('Erro ao autenticar:', error);
+      return {
+        success: false,
+        error: 'Usuário ou senha incorretos.'
+      };
     }
-    
-    return { 
-      success: false, 
-      error: 'Usuário deve ter pelo menos 2 caracteres e senha pelo menos 2 caracteres.' 
-    };
   };
 
   const logout = () => {
     setIsAuthenticated(false);
     setUser(null);
-    
-    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     localStorage.removeItem('username');
-    
-    if (localStorage.getItem('rememberMe') !== 'true') {
-      localStorage.clear();
-    }
+    localStorage.removeItem('rememberMe');
+    delete axios.defaults.headers.common['Authorization'];
   };
 
   const value = {
@@ -68,7 +88,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {loading ? <p>Carregando...</p> : children}
     </AuthContext.Provider>
   );
 };

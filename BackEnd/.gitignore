@@ -1,0 +1,30 @@
+# Created by venv; see https://docs.python.org/3/library/venv.html
+# Virtualenv
+venv/
+env/
+backend/Lib/
+backend/Scripts/
+__pycache__/
+*.pyc
+
+# Banco de dados local
+db.sqlite3
+
+# Variáveis de ambiente
+.env
+
+# Logs e caches
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+__pycache__/
+staticfiles/
+media/
+
+# Configurações do editor
+.vscode/
+.idea/
+.DS_Store
