@@ -65,7 +65,7 @@ MIDDLEWARE = [
 # Para ambiente de produção
 CORS_ALLOWED_ORIGINS = [
     "https://taskflowuniruy.netlify.app",
-    "luminous-llama-7f8e49.netlify.app"
+    "https://luminous-llama-7f8e49.netlify.app"
 ]
 
 # Pode deixar True se quiser facilitar enquanto testa
