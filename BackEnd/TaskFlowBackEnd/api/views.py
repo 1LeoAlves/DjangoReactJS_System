@@ -1,22 +1,20 @@
-from rest_framework import viewsets, permissions, status
-from rest_framework.response import Response
+from rest_framework import viewsets, permissions
+from .models import Task
+from .serializers import TaskSerializer, UserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
-from .serializers import UserSerializer, TaskSerializer
-from .models import Task
 
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        if user.is_staff:  # admin vê todas as tasks
-            return Task.objects.all()
-        return Task.objects.filter(owner=user)
+        # Retorna apenas tasks do usuário logado
+        return Task.objects.filter(owner=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)  # atribui task ao usuário logado
+        # Define o owner automaticamente ao criar uma task
+        serializer.save(owner=self.request.user)
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -26,9 +24,7 @@ class UserViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
         user = serializer.save()
-
         refresh = RefreshToken.for_user(user)
 
         data = {
@@ -37,5 +33,4 @@ class UserViewSet(viewsets.ModelViewSet):
             "access": str(refresh.access_token),
             "refresh": str(refresh)
         }
-
-        return Response(data, status=status.HTTP_201_CREATED)
+        return Response(data)
