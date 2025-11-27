@@ -9,7 +9,6 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Carrega sessão ao abrir página
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     const username = localStorage.getItem("username");
@@ -17,12 +16,14 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       setIsAuthenticated(true);
       setUser(username);
+
+      // 🔥 ESSENCIAL: aplicar o token no axios logo ao carregar
+      API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     }
 
     setLoading(false);
   }, []);
 
-  // LOGIN
   const login = async (username, password, rememberMe) => {
     try {
       const resp = await API.post("/token/", { username, password });
@@ -31,6 +32,9 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("access_token", access);
       localStorage.setItem("refresh_token", refresh);
       localStorage.setItem("username", username);
+
+      // 🔥 aplica imediatamente pra evitar 401 no primeiro request
+      API.defaults.headers.common["Authorization"] = `Bearer ${access}`;
 
       setIsAuthenticated(true);
       setUser(username);
@@ -45,9 +49,9 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // LOGOUT GLOBAL
   const logout = () => {
     localStorage.clear();
+    delete API.defaults.headers.common["Authorization"];
     setIsAuthenticated(false);
     setUser(null);
   };
