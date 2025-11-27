@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import API from '../services/api';
+import { useAuth } from './AuthContext';
 
 const TaskContext = createContext();
 export const useTask = () => {
@@ -9,15 +10,23 @@ export const useTask = () => {
 };
 
 export const TaskProvider = ({ children }) => {
+  const { isAuthenticated, loading: authLoading } = useAuth();
+
   const [tasks, setTasks] = useState([]);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
 
   // ================================
-  // Load tasks from API on mount
+  // Load tasks from API after login
   // ================================
   useEffect(() => {
     const fetchTasks = async () => {
+      if (!isAuthenticated) {
+        setTasks([]);
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await API.get('/tasks/');
         setTasks(res.data);
@@ -27,15 +36,16 @@ export const TaskProvider = ({ children }) => {
         setLoading(false);
       }
     };
-    fetchTasks();
-  }, []);
+
+    if (!authLoading) {
+      fetchTasks();
+    }
+  }, [isAuthenticated, authLoading]);
 
   // ================================
   // Helpers
   // ================================
-  const generateId = () => {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
-  };
+  const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
 
   const addTask = async (text) => {
     if (!text.trim()) return null;
@@ -63,10 +73,7 @@ export const TaskProvider = ({ children }) => {
     if (!task) return;
 
     try {
-      const res = await API.put(`/tasks/${id}/`, {
-        ...task,
-        completed: !task.completed,
-      });
+      const res = await API.put(`/tasks/${id}/`, { ...task, completed: !task.completed });
       setTasks(prev => prev.map(t => (t.id === id ? res.data : t)));
     } catch (err) {
       console.error('Erro ao alternar tarefa', err);
