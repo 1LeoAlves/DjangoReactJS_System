@@ -5,7 +5,7 @@ import { CircleCheck as CheckCircle, Lock, User, LogIn, CircleAlert as AlertCirc
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    username: '',
+    name: '',
     password: '',
     confirmPassword: ''
   });
@@ -29,7 +29,7 @@ const Register = () => {
     setSuccess('');
     setIsLoading(true);
 
-    if (!formData.username.trim() || !formData.password.trim() || !formData.confirmPassword.trim()) {
+    if (!formData.name.trim() || !formData.password.trim() || !formData.confirmPassword.trim()) {
       setError('Por favor, preencha todos os campos.');
       setIsLoading(false);
       return;
@@ -43,8 +43,7 @@ const Register = () => {
 
     try {
         const response = await API.post('/users/', {
-        name: formData.username,
-        name: formData.username, 
+        name: formData.name,
         password: formData.password
         });
 
@@ -88,7 +87,7 @@ const Register = () => {
                     type="text"
                     name="username"
                     placeholder="Usuário"
-                    value={formData.username}
+                    value={formData.name}
                     onChange={handleChange}
                     required
                   />

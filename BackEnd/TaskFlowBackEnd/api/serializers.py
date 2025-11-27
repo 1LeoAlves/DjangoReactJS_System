@@ -8,15 +8,14 @@ class TaskSerializer(serializers.ModelSerializer):
         fields = '__all__' # pode trocar por ['title', 'description', ...] se quiser limitar
 
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True)  # recebe do frontend
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'password', 'name']  # incluir 'name'
+        fields = ['id', 'name', 'password']  # name é obrigatório
 
     def create(self, validated_data):
         validated_data['hash_password'] = make_password(validated_data.pop('password'))
-        # se não tiver name, usar o username
-        if 'name' not in validated_data:
-            validated_data['name'] = validated_data.get('username', '')
+        if 'name' not in validated_data or not validated_data['name']:
+            validated_data['name'] = validated_data.get('username', '')  # fallback
         return super().create(validated_data)
