@@ -42,9 +42,9 @@ const Register = () => {
     }
 
     try {
-        const response = await API.post('/users/', {
-        name: formData.name,
-        password: formData.password
+        const response = await API.post("/users/", {
+        username: formData.name,
+        password: formData.password,
         });
 
 

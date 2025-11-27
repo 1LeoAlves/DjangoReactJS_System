@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { CircleCheck as CheckCircle, CreditCard as Edit, Smartphone, User, Lock, LogIn, CircleAlert as AlertCircle } from 'lucide-react';
+import API from '../services/api';
+import { 
+  CircleCheck as CheckCircle,
+  CreditCard as Edit,
+  Smartphone,
+  User,
+  Lock,
+  LogIn,
+  CircleAlert as AlertCircle 
+} from 'lucide-react';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -11,21 +19,20 @@ const Login = () => {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
-  const { login, isAuthenticated } = useAuth();
+
   const navigate = useNavigate();
 
+  // se já estiver logado, redireciona
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/home');
-    }
-  }, [isAuthenticated, navigate]);
+    const token = localStorage.getItem("access");
+    if (token) navigate("/home");
+  }, [navigate]);
 
+  // rememberMe
   useEffect(() => {
-    // Auto-fill if user was remembered
-    const rememberMe = localStorage.getItem('rememberMe') === 'true';
-    const savedUsername = localStorage.getItem('username');
-    
+    const rememberMe = localStorage.getItem("rememberMe") === "true";
+    const savedUsername = localStorage.getItem("username");
+
     if (rememberMe && savedUsername) {
       setFormData(prev => ({
         ...prev,
@@ -39,7 +46,7 @@ const Login = () => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value
     }));
   };
 
@@ -49,26 +56,53 @@ const Login = () => {
     setIsLoading(true);
 
     if (!formData.username.trim() || !formData.password.trim()) {
-      setError('Por favor, preencha todos os campos.');
+      setError("Por favor, preencha todos os campos.");
       setIsLoading(false);
       return;
     }
 
-    const result = login(formData.username, formData.password, formData.rememberMe);
-    
-    if (result.success) {
-      setTimeout(() => {
-        navigate('/home');
-      }, 1000);
-    } else {
-      setError(result.error);
-      setIsLoading(false);
+    try {
+      // 🔥 LOGIN JWT — Django REST + SimpleJWT
+      const response = await API.post("/token/", {
+        username: formData.username,
+        password: formData.password
+      });
+
+      const { access, refresh } = response.data;
+
+      // salva token
+      localStorage.setItem("access", access);
+      localStorage.setItem("refresh", refresh);
+
+      // remember-me
+      if (formData.rememberMe) {
+        localStorage.setItem("rememberMe", true);
+        localStorage.setItem("username", formData.username);
+      } else {
+        localStorage.removeItem("rememberMe");
+        localStorage.removeItem("username");
+      }
+
+      // redireciona
+      setTimeout(() => navigate("/home"), 800);
+
+    } catch (err) {
+      console.error("Erro no login:", err);
+
+      if (err.response?.status === 401) {
+        setError("Usuário ou senha incorretos.");
+      } else {
+        setError("Erro ao conectar com o servidor.");
+      }
     }
+
+    setIsLoading(false);
   };
 
   return (
     <div className="login-container">
       <div className="login-content">
+
         {/* Left Section */}
         <div className="left-section">
           <div className="welcome-content">
@@ -79,6 +113,7 @@ const Login = () => {
               <h1>TaskFlow</h1>
             </div>
             <p className="lead">Organize suas tarefas de forma inteligente e produtiva</p>
+
             <div className="features">
               <div className="feature-item">
                 <CheckCircle size={20} />
@@ -156,12 +191,14 @@ const Login = () => {
                     Entrar
                   </>
                 )}
+
                 <div className="register-link">
-                <span>Não tem conta? </span>
+                  <span>Não tem conta? </span>
                   <button
-                      type="button"
-                      className="btn-link"
-                      onClick={() => navigate('/register')}>
+                    type="button"
+                    className="btn-link"
+                    onClick={() => navigate('/register')}
+                  >
                     Cadastre-se
                   </button>
                 </div>
@@ -176,10 +213,11 @@ const Login = () => {
             )}
 
             <div className="demo-info">
-              <small>Demo: Use qualquer usuário e senha para entrar</small>
+              <small>Use seu usuário e senha cadastrados.</small>
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );

@@ -1,21 +1,20 @@
 from rest_framework import serializers
-from .models import Task, User
+from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
+from .models import Task
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = '__all__' # pode trocar por ['title', 'description', ...] se quiser limitar
+        fields = '__all__'
 
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)  # recebe do frontend
+    password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ['id', 'name', 'password']  # name é obrigatório
+        fields = ['id', 'username', 'password']
 
     def create(self, validated_data):
-        validated_data['hash_password'] = make_password(validated_data.pop('password'))
-        if 'name' not in validated_data or not validated_data['name']:
-            validated_data['name'] = validated_data.get('username', '')  # fallback
-        return super().create(validated_data)
+        validated_data['password'] = make_password(validated_data['password'])
+        return User.objects.create(**validated_data)

@@ -7,10 +7,3 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title
-    
-class User(models.Model):
-    name = models.CharField(max_length=100)
-    hash_password = models.CharField(max_length=128)
-
-    def __str__(self):
-        return self.name
