@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
-import { CircleCheck as CheckCircle, User, Lock, CircleAlert as AlertCircle } from 'lucide-react';
+import { CircleCheck as CheckCircle, Lock, User, LogIn, CircleAlert as AlertCircle } from 'lucide-react';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -10,18 +10,23 @@ const Register = () => {
     confirmPassword: ''
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setIsLoading(true);
 
     if (!formData.username.trim() || !formData.password.trim() || !formData.confirmPassword.trim()) {
@@ -31,23 +36,34 @@ const Register = () => {
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('As senhas não coincidem.');
+      setError('As senhas não conferem.');
       setIsLoading(false);
       return;
     }
 
     try {
-      // Criação do usuário no backend
-      await API.post('/users/', {
+      const response = await API.post('/users/', {
         username: formData.username,
         password: formData.password
       });
 
-      // Redireciona para login após cadastro
-      navigate('/login');
+      if (response.status === 201) {
+        setSuccess('Cadastro realizado com sucesso! Redirecionando para login...');
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      }
     } catch (err) {
-      console.error('Erro ao cadastrar:', err);
-      setError('Não foi possível cadastrar. Tente outro usuário.');
+      console.error('Erro ao cadastrar:', err.response || err);
+      if (err.response && err.response.data) {
+        const messages = Object.entries(err.response.data)
+          .map(([field, msgs]) => `${field}: ${msgs.join(', ')}`)
+          .join(' | ');
+        setError(messages);
+      } else {
+        setError('Erro ao cadastrar usuário.');
+      }
+    } finally {
       setIsLoading(false);
     }
   };
@@ -55,39 +71,11 @@ const Register = () => {
   return (
     <div className="login-container">
       <div className="login-content">
-        {/* Left Section */}
-        <div className="left-section">
-          <div className="welcome-content">
-            <div className="logo-section">
-              <div className="logo-icon">
-                <CheckCircle size={64} />
-              </div>
-              <h1>TaskFlow</h1>
-            </div>
-            <p className="lead">Organize suas tarefas de forma inteligente e produtiva</p>
-            <div className="features">
-              <div className="feature-item">
-                <CheckCircle size={20} />
-                <span>Gerencie suas tarefas facilmente</span>
-              </div>
-              <div className="feature-item">
-                <Lock size={20} />
-                <span>Mantenha suas informações seguras</span>
-              </div>
-              <div className="feature-item">
-                <User size={20} />
-                <span>Crie sua conta em segundos</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Section */}
         <div className="right-section">
           <div className="login-form-container">
             <div className="login-header">
-              <h2>Cadastre-se</h2>
-              <p>Crie sua conta para começar a organizar suas tarefas</p>
+              <h2>Cadastro</h2>
+              <p>Crie sua conta para começar</p>
             </div>
 
             <form onSubmit={handleSubmit} className="login-form">
@@ -134,20 +122,29 @@ const Register = () => {
               </div>
 
               <button type="submit" className="btn-primary" disabled={isLoading}>
-                {isLoading ? 'Cadastrando...' : 'Cadastrar'}
+                {isLoading ? 'Cadastrando...' : <>
+                  <LogIn size={20} /> Cadastrar
+                </>}
               </button>
-
-              {error && (
-                <div className="error-message">
-                  <AlertCircle size={20} />
-                  <span>{error}</span>
-                </div>
-              )}
-
-              <div className="demo-info">
-                <small>Já tem uma conta? <button type="button" onClick={() => navigate('/login')}>Entre aqui</button></small>
-              </div>
             </form>
+
+            {error && (
+              <div className="error-message">
+                <AlertCircle size={20} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {success && (
+              <div className="success-message">
+                <CheckCircle size={20} />
+                <span>{success}</span>
+              </div>
+            )}
+
+            <div className="demo-info">
+              <small>Já possui conta? <span className="link" onClick={() => navigate('/login')}>Faça login</span></small>
+            </div>
           </div>
         </div>
       </div>
