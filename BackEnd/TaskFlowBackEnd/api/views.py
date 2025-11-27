@@ -5,15 +5,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 
 class TaskViewSet(viewsets.ModelViewSet):
+    queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        # Retorna apenas tasks do usuário logado
-        return Task.objects.filter(owner=self.request.user)
-
     def perform_create(self, serializer):
-        # Define o owner automaticamente ao criar uma task
         serializer.save(owner=self.request.user)
 
 class UserViewSet(viewsets.ModelViewSet):
