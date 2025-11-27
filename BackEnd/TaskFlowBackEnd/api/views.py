@@ -20,17 +20,34 @@ class UserViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        try:
-            refresh = RefreshToken.for_user(user)
-        except Exception as e:
-            print("Erro ao gerar token:", e)
-        return Response({"error": str(e)}, status=500)
 
-        data = {
-            "id": user.id,
-            "username": user.username,
-            "access": str(refresh.access_token),
-            "refresh": str(refresh)
-        }
-        return Response(data)
+        try:
+            # Cria o usuário
+            user = serializer.save()
+
+            # Gera tokens
+            try:
+                refresh = RefreshToken.for_user(user)
+                data = {
+                    "id": user.id,
+                    "username": user.username,
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                }
+            except Exception:
+                # Caso algo dê errado com o token, retorna só os dados do usuário
+                data = {
+                    "id": user.id,
+                    "username": user.username,
+                    "access": None,
+                    "refresh": None,
+                }
+
+            return Response(data, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            # Retorna erro amigável sem quebrar o backend
+            return Response(
+                {"detail": "Erro ao criar usuário.", "error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
