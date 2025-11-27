@@ -42,10 +42,12 @@ const Register = () => {
     }
 
     try {
-      const response = await API.post('/users/', {
+        const response = await API.post('/users/', {
         username: formData.username,
+        name: formData.username, 
         password: formData.password
-      });
+        });
+
 
       if (response.status === 201) {
         setSuccess('Cadastro realizado com sucesso! Redirecionando para login...');
