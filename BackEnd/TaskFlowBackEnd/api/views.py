@@ -21,7 +21,11 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        refresh = RefreshToken.for_user(user)
+        try:
+            refresh = RefreshToken.for_user(user)
+        except Exception as e:
+            print("Erro ao gerar token:", e)
+        return Response({"error": str(e)}, status=500)
 
         data = {
             "id": user.id,
