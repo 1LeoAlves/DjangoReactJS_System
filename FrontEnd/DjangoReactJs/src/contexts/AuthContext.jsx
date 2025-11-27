@@ -1,70 +1,103 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import API from '../services/api';
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
-export const useAuth = () => useContext(AuthContext);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null); // username
   const [loading, setLoading] = useState(true);
 
+  // ================================
+  // RESTAURATION + ADAPTAÇÃO JWT
+  // ================================
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const access = localStorage.getItem("access_token");
     const username = localStorage.getItem("username");
 
-    if (token) {
+    if (access && username) {
       setIsAuthenticated(true);
       setUser(username);
-
-      // 🔥 ESSENCIAL: aplicar o token no axios logo ao carregar
-      API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     }
 
     setLoading(false);
   }, []);
 
+  // ================================
+  // LOGIN (agora usando Django)
+  // ================================
   const login = async (username, password, rememberMe) => {
     try {
-      const resp = await API.post("/token/", { username, password });
-      const { access, refresh } = resp.data;
+      const response = await fetch("https://djangoreactjssystem-production.up.railway.app/api/token/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
 
-      localStorage.setItem("access_token", access);
-      localStorage.setItem("refresh_token", refresh);
+      if (!response.ok) {
+        return {
+          success: false,
+          error: "Usuário ou senha inválidos.",
+        };
+      }
+
+      const data = await response.json();
+
+      // salva tokens
+      localStorage.setItem("access_token", data.access);
+      localStorage.setItem("refresh_token", data.refresh);
+
+      // mantém compatibilidade com seu código frontend
+      localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("username", username);
-
-      // 🔥 aplica imediatamente pra evitar 401 no primeiro request
-      API.defaults.headers.common["Authorization"] = `Bearer ${access}`;
+      localStorage.setItem("rememberMe", rememberMe);
 
       setIsAuthenticated(true);
       setUser(username);
 
-      if (rememberMe) localStorage.setItem("rememberMe", "true");
-      else localStorage.removeItem("rememberMe");
-
       return { success: true };
-
-    } catch (err) {
-      return { success: false, error: "Usuário ou senha incorretos." };
+    } catch (error) {
+      return {
+        success: false,
+        error: "Erro ao conectar com o servidor.",
+      };
     }
   };
 
+  // ================================
+  // LOGOUT
+  // ================================
   const logout = () => {
-    localStorage.clear();
-    delete API.defaults.headers.common["Authorization"];
     setIsAuthenticated(false);
     setUser(null);
+
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("username");
+
+    if (localStorage.getItem("rememberMe") !== "true") {
+      localStorage.clear();
+    }
   };
 
-  return (
-    <AuthContext.Provider value={{
-      isAuthenticated,
-      user,
-      login,
-      logout,
-      loading,
-    }}>
-      {loading ? <p>Carregando...</p> : children}
-    </AuthContext.Provider>
-  );
+  const value = {
+    isAuthenticated,
+    user,
+    login,
+    logout,
+    loading,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

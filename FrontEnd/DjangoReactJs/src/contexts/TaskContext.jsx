@@ -1,71 +1,85 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import API from '../services/api';
 
 const TaskContext = createContext();
-
 export const useTask = () => {
   const context = useContext(TaskContext);
-  if (!context) {
-    throw new Error('useTask must be used within a TaskProvider');
-  }
+  if (!context) throw new Error('useTask must be used within a TaskProvider');
   return context;
 };
 
 export const TaskProvider = ({ children }) => {
   const [tasks, setTasks] = useState([]);
   const [filter, setFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
 
+  // ================================
+  // Load tasks from API on mount
+  // ================================
   useEffect(() => {
-    // Load tasks from localStorage on component mount
-    const savedTasks = localStorage.getItem('tasks');
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
-    }
+    const fetchTasks = async () => {
+      try {
+        const res = await API.get('/tasks/');
+        setTasks(res.data);
+      } catch (err) {
+        console.error('Erro ao carregar tarefas', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTasks();
   }, []);
 
-  useEffect(() => {
-    // Save tasks to localStorage whenever tasks change
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-  }, [tasks]);
-
+  // ================================
+  // Helpers
+  // ================================
   const generateId = () => {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
   };
 
-  const addTask = (text) => {
-    const newTask = {
-      id: generateId(),
-      text: text.trim(),
-      completed: false,
-      createdAt: new Date().toISOString(),
-      completedAt: null
-    };
-    
-    setTasks(prev => [...prev, newTask]);
-    return newTask;
+  const addTask = async (text) => {
+    if (!text.trim()) return null;
+    try {
+      const res = await API.post('/tasks/', { text, completed: false });
+      setTasks(prev => [...prev, res.data]);
+      return res.data;
+    } catch (err) {
+      console.error('Erro ao adicionar tarefa', err);
+      return null;
+    }
   };
 
-  const updateTask = (id, updates) => {
-    setTasks(prev => prev.map(task => 
-      task.id === id 
-        ? { ...task, ...updates }
-        : task
-    ));
+  const updateTask = async (id, updates) => {
+    try {
+      const res = await API.put(`/tasks/${id}/`, updates);
+      setTasks(prev => prev.map(task => (task.id === id ? res.data : task)));
+    } catch (err) {
+      console.error('Erro ao atualizar tarefa', err);
+    }
   };
 
-  const toggleTask = (id) => {
-    setTasks(prev => prev.map(task => 
-      task.id === id 
-        ? { 
-            ...task, 
-            completed: !task.completed,
-            completedAt: !task.completed ? new Date().toISOString() : null
-          }
-        : task
-    ));
+  const toggleTask = async (id) => {
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+
+    try {
+      const res = await API.put(`/tasks/${id}/`, {
+        ...task,
+        completed: !task.completed,
+      });
+      setTasks(prev => prev.map(t => (t.id === id ? res.data : t)));
+    } catch (err) {
+      console.error('Erro ao alternar tarefa', err);
+    }
   };
 
-  const deleteTask = (id) => {
-    setTasks(prev => prev.filter(task => task.id !== id));
+  const deleteTask = async (id) => {
+    try {
+      await API.delete(`/tasks/${id}/`);
+      setTasks(prev => prev.filter(t => t.id !== id));
+    } catch (err) {
+      console.error('Erro ao deletar tarefa', err);
+    }
   };
 
   const getFilteredTasks = () => {
@@ -81,9 +95,8 @@ export const TaskProvider = ({ children }) => {
 
   const getStats = () => {
     const total = tasks.length;
-    const completed = tasks.filter(task => task.completed).length;
+    const completed = tasks.filter(t => t.completed).length;
     const pending = total - completed;
-    
     return { total, completed, pending };
   };
 
@@ -96,12 +109,9 @@ export const TaskProvider = ({ children }) => {
     toggleTask,
     deleteTask,
     getFilteredTasks,
-    getStats
+    getStats,
+    loading,
   };
 
-  return (
-    <TaskContext.Provider value={value}>
-      {children}
-    </TaskContext.Provider>
-  );
+  return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;
 };

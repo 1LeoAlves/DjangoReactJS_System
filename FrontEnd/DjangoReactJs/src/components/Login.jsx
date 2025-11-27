@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import API from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import { 
-  CircleCheck as CheckCircle,
-  CreditCard as Edit,
-  Smartphone,
-  User,
-  Lock,
-  LogIn,
+  CircleCheck as CheckCircle, 
+  CreditCard as Edit, 
+  Smartphone, 
+  User, 
+  Lock, 
+  LogIn, 
   CircleAlert as AlertCircle 
 } from 'lucide-react';
 
@@ -19,14 +19,20 @@ const Login = () => {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
+  
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // rememberMe
   useEffect(() => {
-    const rememberMe = localStorage.getItem("rememberMe") === "true";
-    const savedUsername = localStorage.getItem("username");
+    if (isAuthenticated) {
+      navigate('/home');
+    }
+  }, [isAuthenticated, navigate]);
 
+  useEffect(() => {
+    const rememberMe = localStorage.getItem('rememberMe') === 'true';
+    const savedUsername = localStorage.getItem('username');
+    
     if (rememberMe && savedUsername) {
       setFormData(prev => ({
         ...prev,
@@ -40,7 +46,7 @@ const Login = () => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
@@ -50,14 +56,18 @@ const Login = () => {
     setIsLoading(true);
 
     if (!formData.username.trim() || !formData.password.trim()) {
-      setError('Preencha todos os campos.');
+      setError('Por favor, preencha todos os campos.');
       setIsLoading(false);
       return;
     }
 
-    const result = await login(formData.username, formData.password, formData.rememberMe);
-
-    if (!result.success) {
+    const result = login(formData.username, formData.password, formData.rememberMe);
+    
+    if (result.success) {
+      setTimeout(() => {
+        navigate('/home');
+      }, 1000);
+    } else {
       setError(result.error);
       setIsLoading(false);
     }
@@ -104,6 +114,7 @@ const Login = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="login-form">
+              
               <div className="form-group">
                 <div className="input-wrapper">
                   <User className="input-icon" size={20} />
@@ -156,17 +167,19 @@ const Login = () => {
                   </>
                 )}
               </button>
-              <div className="register-link">
-                  <span>Não tem conta? </span>
-                  <button
-                    type="button"
-                    className="btn-primary"
-                    onClick={() => navigate('/register')}
-                  >
-                    Cadastre-se
-                  </button>
-                </div>
             </form>
+
+            {/* 🔥 Botão de cadastro exatamente como você tinha pedido */}
+            <div className="register-link">
+              <span>Não tem conta? </span>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => navigate('/Register')}
+              >
+                Cadastre-se
+              </button>
+            </div>
 
             {error && (
               <div className="error-message">
@@ -176,7 +189,7 @@ const Login = () => {
             )}
 
             <div className="demo-info">
-              <small>Use seu usuário e senha cadastrados.</small>
+              <small>Demo: Use qualquer usuário e senha para entrar</small>
             </div>
           </div>
         </div>

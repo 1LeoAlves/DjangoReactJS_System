@@ -6,36 +6,38 @@ const TaskForm = () => {
   const [taskText, setTaskText] = useState('');
   const { addTask } = useTask();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    if (!taskText.trim()) return;
-    
-    addTask(taskText);
-    setTaskText('');
-    
-    // Show success notification
-    showNotification('Tarefa adicionada com sucesso!', 'success');
-  };
-
+  // ------------------------------
+  // Notification system
+  // ------------------------------
   const showNotification = (message, type) => {
-    // Simple notification system
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.textContent = message;
-    
+
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
       notification.classList.add('show');
     }, 100);
-    
+
     setTimeout(() => {
       notification.classList.remove('show');
       setTimeout(() => {
         document.body.removeChild(notification);
       }, 300);
     }, 3000);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!taskText.trim()) return;
+
+    const created = addTask(taskText);
+    if (!created) return;
+
+    setTaskText('');
+    showNotification('Tarefa adicionada com sucesso!', 'success');
   };
 
   return (
@@ -45,6 +47,7 @@ const TaskForm = () => {
           <div className="input-icon">
             <Plus size={20} />
           </div>
+
           <input
             type="text"
             value={taskText}
@@ -52,6 +55,7 @@ const TaskForm = () => {
             placeholder="Digite sua nova tarefa..."
             required
           />
+
           <button type="submit" className="btn-primary">
             <Plus size={16} />
             Adicionar

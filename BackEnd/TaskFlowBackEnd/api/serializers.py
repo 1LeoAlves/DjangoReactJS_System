@@ -4,9 +4,12 @@ from django.contrib.auth.hashers import make_password
 from .models import Task
 
 class TaskSerializer(serializers.ModelSerializer):
+    text = serializers.CharField(source='title')
+
     class Meta:
         model = Task
-        fields = '__all__'
+        fields = ['id', 'text', 'description', 'completed']
+
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
