@@ -8,15 +8,15 @@ class TaskSerializer(serializers.ModelSerializer):
         fields = '__all__' # pode trocar por ['title', 'description', ...] se quiser limitar
 
 class UserSerializer(serializers.ModelSerializer):
-    # Cria um campo write_only para senha
     password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        # use apenas os campos que você quer expor no cadastro
-        fields = ['id', 'username', 'password']
+        fields = ['id', 'username', 'password', 'name']  # incluir 'name'
 
-    # Sobrescreve o create para salvar senha hash
     def create(self, validated_data):
         validated_data['hash_password'] = make_password(validated_data.pop('password'))
+        # se não tiver name, usar o username
+        if 'name' not in validated_data:
+            validated_data['name'] = validated_data.get('username', '')
         return super().create(validated_data)
