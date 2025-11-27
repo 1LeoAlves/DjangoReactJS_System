@@ -58,7 +58,10 @@ const Register = () => {
       console.error('Erro ao cadastrar:', err.response || err);
       if (err.response && err.response.data) {
         const messages = Object.entries(err.response.data)
-          .map(([field, msgs]) => `${field}: ${msgs.join(', ')}`)
+          .map(([field, msgs]) => {
+            if (!Array.isArray(msgs)) msgs = [msgs]; // garante que msgs seja array
+            return `${field}: ${msgs.join(', ')}`;
+          })
           .join(' | ');
         setError(messages);
       } else {
