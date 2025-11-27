@@ -49,7 +49,7 @@ const addTask = async (title, description = '') => {
   if (!title.trim()) return null;
   try {
     const res = await API.post('/tasks/', { 
-      text: title,
+      title: title,
       description: description,
       completed: false 
     });
