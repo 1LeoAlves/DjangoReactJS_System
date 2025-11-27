@@ -11,51 +11,45 @@ export const AuthProvider = ({ children }) => {
 
   // Carrega sessão ao abrir página
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    const username = localStorage.getItem('username');
+    const token = localStorage.getItem("access_token");
+    const username = localStorage.getItem("username");
 
     if (token) {
       setIsAuthenticated(true);
       setUser(username);
-      API.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
 
     setLoading(false);
   }, []);
 
-  // Login
+  // LOGIN
   const login = async (username, password, rememberMe) => {
     try {
-      const response = await API.post('/token/', { username, password });
-      const { access, refresh } = response.data;
+      const resp = await API.post("/token/", { username, password });
+      const { access, refresh } = resp.data;
 
-      localStorage.setItem('access_token', access);
-      localStorage.setItem('refresh_token', refresh);
-      localStorage.setItem('username', username);
-
-      API.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+      localStorage.setItem("access_token", access);
+      localStorage.setItem("refresh_token", refresh);
+      localStorage.setItem("username", username);
 
       setIsAuthenticated(true);
       setUser(username);
 
-      if (rememberMe)
-        localStorage.setItem("rememberMe", "true");
-      else
-        localStorage.removeItem("rememberMe");
+      if (rememberMe) localStorage.setItem("rememberMe", "true");
+      else localStorage.removeItem("rememberMe");
 
       return { success: true };
 
-    } catch (error) {
+    } catch (err) {
       return { success: false, error: "Usuário ou senha incorretos." };
     }
   };
 
-  // Logout
+  // LOGOUT GLOBAL
   const logout = () => {
     localStorage.clear();
     setIsAuthenticated(false);
     setUser(null);
-    delete API.defaults.headers.common['Authorization'];
   };
 
   return (
@@ -64,7 +58,7 @@ export const AuthProvider = ({ children }) => {
       user,
       login,
       logout,
-      loading
+      loading,
     }}>
       {loading ? <p>Carregando...</p> : children}
     </AuthContext.Provider>

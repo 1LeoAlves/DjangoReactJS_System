@@ -1,80 +1,66 @@
-import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
-const Login = () => {
+function Login() {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     username: "",
     password: "",
-    rememberMe: false
+    rememberMe: false,
   });
 
   const [error, setError] = useState("");
-  const [loadingBtn, setLoadingBtn] = useState(false);
 
-  if (isAuthenticated) {
-    return navigate("/home");
-  }
+  if (isAuthenticated) return navigate("/home");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setLoadingBtn(true);
 
-    const result = await login(
-      formData.username,
-      formData.password,
-      formData.rememberMe
-    );
+    const r = await login(form.username, form.password, form.rememberMe);
 
-    if (!result.success) {
-      setError(result.error);
-      setLoadingBtn(false);
-      return;
-    }
+    if (!r.success) return setError(r.error);
 
     navigate("/home");
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <div>
       <h2>Entrar</h2>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      <input
-        type="text"
-        placeholder="Usuário"
-        value={formData.username}
-        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-      />
-
-      <input
-        type="password"
-        placeholder="Senha"
-        value={formData.password}
-        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-      />
-
-      <label>
+      <form onSubmit={handleSubmit}>
         <input
-          type="checkbox"
-          checked={formData.rememberMe}
-          onChange={(e) =>
-            setFormData({ ...formData, rememberMe: e.target.checked })
-          }
+          type="text"
+          placeholder="Usuário"
+          value={form.username}
+          onChange={(e) => setForm({ ...form, username: e.target.value })}
         />
-        Lembrar-me
-      </label>
 
-      <button disabled={loadingBtn}>
-        {loadingBtn ? "Entrando..." : "Entrar"}
-      </button>
-    </form>
+        <input
+          type="password"
+          placeholder="Senha"
+          value={form.password}
+          onChange={(e) => setForm({ ...form, password: e.target.value })}
+        />
+
+        <label>
+          <input
+            type="checkbox"
+            checked={form.rememberMe}
+            onChange={(e) => setForm({ ...form, rememberMe: e.target.checked })}
+          />
+          Lembrar-me
+        </label>
+
+        <button>Entrar</button>
+      </form>
+    </div>
   );
-};
+}
 
 export default Login;
