@@ -5,6 +5,7 @@ import { TaskProvider } from './contexts/TaskContext';
 import Login from './components/Login';
 import Home from './components/Home';
 import ProtectedRoute from './components/ProtectedRoute';
+import Register from './components/Register';
 import './App.css';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
           <div className="App">
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
               <Route 
                 path="/home" 
                 element={

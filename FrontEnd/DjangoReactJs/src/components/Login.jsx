@@ -156,6 +156,15 @@ const Login = () => {
                     Entrar
                   </>
                 )}
+                <div className="register-link">
+                <span>Não tem conta? </span>
+                  <button
+                      type="button"
+                      className="btn-link"
+                      onClick={() => navigate('/register')}>
+                    Cadastre-se
+                  </button>
+                </div>
               </button>
             </form>
 
