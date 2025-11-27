@@ -19,10 +19,12 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'password']
 
     def create(self, validated_data):
-        return User.objects.create_user(
+        user = User.objects.create_user(
             username=validated_data['username'],
             password=validated_data['password']
         )
+        return user
+    
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError("Este username já está em uso.")
