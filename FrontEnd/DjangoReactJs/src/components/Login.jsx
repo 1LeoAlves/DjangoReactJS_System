@@ -24,7 +24,7 @@ const Login = () => {
 
   // se já estiver logado, redireciona
   useEffect(() => {
-    const token = localStorage.getItem("access");
+    const token = localStorage.getItem("access_token");
     if (token) navigate("/home");
   }, [navigate]);
 
@@ -71,7 +71,7 @@ const Login = () => {
       const { access, refresh } = response.data;
 
       // salva token
-      localStorage.setItem("access", access);
+      localStorage.setItem("access_token", access);
       localStorage.setItem("refresh", refresh);
 
       // remember-me
