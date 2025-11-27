@@ -2,8 +2,16 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import API from '../services/api';
 
 const AuthContext = createContext();
+const [loading, setLoading] = useState(true);
 
 export const useAuth = () => useContext(AuthContext);
+
+useEffect(() => {
+  const token = localStorage.getItem("access_token");
+  if (token) setUser(true);
+  setLoading(false);
+}, []);
+
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

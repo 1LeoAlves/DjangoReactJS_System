@@ -22,12 +22,6 @@ const Login = () => {
 
   const navigate = useNavigate();
 
-  // se já estiver logado, redireciona
-  useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    if (token) navigate("/home");
-  }, [navigate]);
-
   // rememberMe
   useEffect(() => {
     const rememberMe = localStorage.getItem("rememberMe") === "true";
