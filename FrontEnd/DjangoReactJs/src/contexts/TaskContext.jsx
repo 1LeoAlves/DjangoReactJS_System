@@ -45,12 +45,11 @@ export const TaskProvider = ({ children }) => {
   // ================================
   // Helpers
   // ================================
-const addTask = async (title, description = '') => {
+const addTask = async (title) => {
   if (!title.trim()) return null;
   try {
     const res = await API.post('/tasks/', { 
       title: title,
-      description: description,
       completed: false 
     });
     setTasks(prev => [...prev, res.data]);
