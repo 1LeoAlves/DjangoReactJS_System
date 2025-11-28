@@ -9,7 +9,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Task
-        fields = ['id', 'title', 'completed', 'owner']
+        fields = ['id', 'text', 'completed', 'owner']
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)

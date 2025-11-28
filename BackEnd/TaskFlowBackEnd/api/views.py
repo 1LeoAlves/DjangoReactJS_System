@@ -10,7 +10,6 @@ class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Só retorna tarefas do usuário logado
         return Task.objects.filter(owner=self.request.user)
 
     def perform_create(self, serializer):
@@ -24,9 +23,8 @@ class UserViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()  # usuário criado com create_user
+        user = serializer.save() 
 
-        # Criando token **após garantir que o usuário existe**
         try:
             refresh = RefreshToken.for_user(user)
             data = {
@@ -36,7 +34,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 "refresh": str(refresh)
             }
         except Exception as e:
-            # Em caso de erro, pelo menos retorna o usuário criado
             data = {
                 "id": user.id,
                 "username": user.username,

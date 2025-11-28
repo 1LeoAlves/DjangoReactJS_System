@@ -48,9 +48,7 @@ export const TaskProvider = ({ children }) => {
 const addTask = async (title) => {
   if (!title.trim()) return null;
   try {
-    const res = await API.post('/tasks/', { 
-      text: title,
-    });
+    const res = await API.post('/tasks/', { text: title });
     setTasks(prev => [...prev, res.data]);
     return res.data;
   } catch (err) {
