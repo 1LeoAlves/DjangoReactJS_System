@@ -4,10 +4,6 @@ const API = axios.create({
   baseURL: "https://djangoreactjssystem-production.up.railway.app/api",
 });
 
-// ============================
-// 🔄 REFRESH TOKEN AUTOMÁTICO
-// ============================
-
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -31,22 +27,18 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
-// Interceptor de resposta
 API.interceptors.response.use(
   (response) => response,
 
   async (error) => {
     const originalRequest = error.config;
 
-    // Se não for 401 ou já está tentando refresh → recusa
     if (error.response?.status !== 401 || originalRequest._retry) {
       return Promise.reject(error);
     }
 
-    // Marca que já tentou
     originalRequest._retry = true;
 
-    // Já está atualizando o token → fila
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
@@ -82,7 +74,6 @@ API.interceptors.response.use(
       processQueue(err, null);
       isRefreshing = false;
 
-      // Refresh falhou → desloga completamente
       localStorage.clear();
       window.location.href = "/login";
 

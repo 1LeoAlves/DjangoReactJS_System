@@ -13,7 +13,7 @@ export const useTask = () => {
 export const TaskProvider = ({ children }) => {
   const { isAuthenticated, loading: authLoading } = useAuth();
 
-  const [tasks, setTasks] = useState(null); // null = não carregado ainda
+  const [tasks, setTasks] = useState(null);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
 
@@ -49,8 +49,7 @@ const addTask = async (title) => {
   if (!title.trim()) return null;
   try {
     const res = await API.post('/tasks/', { 
-      title: title,
-      completed: false 
+      text: title,
     });
     setTasks(prev => [...prev, res.data]);
     return res.data;
